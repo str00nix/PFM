@@ -1,1 +1,1 @@
-# PFM
+# PFM - Personal Finance Management
