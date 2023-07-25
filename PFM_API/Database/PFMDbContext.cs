@@ -7,8 +7,9 @@ namespace PFM_API.Database
 {
     public class PFMDbContext : DbContext
     {
-        public DbSet<TransactionEntity> Transactions { get; set; }
         public DbSet<CategoryEntity> Categories { get; set; }
+        public DbSet<TransactionEntity> Transactions { get; set; }
+        public DbSet<SplitTransactionEntity> TransactionSplits { get; set; }
 
         public PFMDbContext() {  }
 
@@ -28,7 +29,7 @@ namespace PFM_API.Database
             //modelBuilder.ApplyConfiguration(
             //    new TransactionEntityTypeConfiguration()
             //    );
-            modelBuilder.Entity<TransactionEntity>().HasKey(t => t.Id);
+            ////modelBuilder.Entity<TransactionEntity>().HasKey(t => t.Id);
             base.OnModelCreating(modelBuilder);
         }
 

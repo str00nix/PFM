@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -48,14 +49,43 @@ namespace PFM_API.Migrations
                         principalColumn: "Code");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "transactionSplits",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Catcode = table.Column<string>(type: "text", nullable: false),
+                    Amount = table.Column<double>(type: "double precision", nullable: false),
+                    TransactionId = table.Column<string>(type: "text", nullable: true),
+                    TransactionEntityId = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_transactionSplits", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_transactionSplits_transaction_TransactionEntityId",
+                        column: x => x.TransactionEntityId,
+                        principalTable: "transaction",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_transaction_catcode",
                 table: "transaction",
                 column: "catcode");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_transactionSplits_TransactionEntityId",
+                table: "transactionSplits",
+                column: "TransactionEntityId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "transactionSplits");
+
             migrationBuilder.DropTable(
                 name: "transaction");
 

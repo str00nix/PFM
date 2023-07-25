@@ -15,7 +15,7 @@ namespace PFM_API.Database.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<PagedSortedList<CategoryEntity>> GetCategories(int page, int pageSize, Models.SortOrder sortOrder, string? sortBy)
+        public async Task<PagedSortedList<CategoryEntity>> GetCategories(int page, int pageSize, Models.SortOrder sortOrder, string? sortBy, string? parentCode)
         {
             var query = _dbContext.Categories.AsQueryable();
             var totalCount = query.Count();
@@ -91,10 +91,6 @@ namespace PFM_API.Database.Repositories
             foreach (var record in records)
             {
 
-                /* if (string.IsNullOrWhiteSpace(record.id))
-                 {
-                     break;
-                 }*/
                 if (record.ParentCode == "")
                 //if (record.ParentCode == null)
                 {
@@ -152,6 +148,96 @@ namespace PFM_API.Database.Repositories
             }
             _dbContext.SaveChanges();
 
+        }
+        public async Task<CategoryEntity> GetCategoryByCodeId(string codeId)
+        {
+            return await _dbContext.Categories.FirstOrDefaultAsync(t => t.Code.Equals(codeId));
+        }
+        public async Task<bool> CreateCategory(CategoryEntity categoryEntity)
+        {
+            _dbContext.Categories.Add(categoryEntity);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> UpdateCategory(Category c)
+        {
+            var category = await _dbContext.Categories.SingleAsync(x => x.Code.Equals(c.Code));
+            category.Name = c.Name;
+            category.ParentCode = c.ParentCode;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+        public async Task<List<CategoryEntity>> GetChildCategories(string parentCode)
+        {
+            return await _dbContext.Categories.AsQueryable().Where(x => x.ParentCode.Equals(parentCode)).ToListAsync();
+        }
+
+        public async Task<List<CategoryEntity>> GetParentCategories()
+        {
+            return await _dbContext.Categories.AsQueryable().Where(x => x.ParentCode.Equals("")).ToListAsync();
+        }
+
+        public async Task<List<SpendingByCategory>> GetAnalytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionsEnum? directionKind)
+        {
+            if (catcode != null)
+            {
+                var queryC = _dbContext.Categories.AsQueryable();
+                var queryT = _dbContext.Transactions.AsQueryable();
+
+                var finalList = await queryT.Join(queryC,
+                            queryT => queryT.CatCode,
+                            queryC => queryC.Code,
+                            (queryT, queryC) => new {
+                                Id = queryT.Id,
+                                Amount = queryT.Amount,
+                                CatCode = queryT.CatCode,
+                                ParentCode = queryC.ParentCode,
+                                Direction = queryT.Direction,
+                                Date = queryT.Date
+                            }).Where(x => x.ParentCode.Equals(catcode) || x.CatCode.Equals(catcode))
+                            .Where(x => directionKind == null || (x.Direction == directionKind))
+                            .Where(x => (startDate == null || (x.Date >= startDate)) && (endDate == null || (x.Date <= endDate)))
+                            .GroupBy(x => x.CatCode)
+                            .Select(x => new SpendingByCategory
+                            {
+                                catcode = x.First().CatCode,
+                                count = x.Count(),
+                                amount = x.Sum(c => c.Amount)
+                            }).ToListAsync();
+
+                return finalList;
+            }
+
+            else
+            {
+                List<SpendingByCategory> listOfSpendings = new List<SpendingByCategory>();
+
+                var query = _dbContext.Categories.AsQueryable();
+                query = query.Where(x => x.ParentCode.Equals(""));
+                List<CategoryEntity> listOfRoots = await query.ToListAsync();
+
+                foreach (CategoryEntity categoryEntity in listOfRoots)
+                {
+                    string rootCode = categoryEntity.Code;
+                    List<CategoryEntity> listOfChildrenAndRoot = await _dbContext.Categories.AsQueryable().Where(x => x.ParentCode.Equals(rootCode) || x.Code.Equals(rootCode)).ToListAsync();
+
+                    List<TransactionEntity> listOfTransactions = await _dbContext.Transactions.AsQueryable()
+                        .Where(x => listOfChildrenAndRoot.Contains(x.category))
+                        .Where(x => directionKind == null || x.Direction == directionKind)
+                        .Where(x => (startDate == null || x.Date >= startDate) && (endDate == null || x.Date <= endDate)).ToListAsync();
+
+
+                    SpendingByCategory s = new SpendingByCategory(); s.amount = 0.0; s.count = 0; s.catcode = rootCode;
+                    foreach(TransactionEntity transactionEntity in listOfTransactions)
+                    {
+                        s.amount += transactionEntity.Amount;
+                        s.count++;
+                    }
+
+                    if (s.count > 0) listOfSpendings.Add(s);
+                }
+                return listOfSpendings;
+            }
         }
     }
 }

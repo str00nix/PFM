@@ -55,5 +55,23 @@ namespace PFM_API.Models
         [Name("catcode")]
         [ReadOnly(true)]
         public string? CatCode { get; set; }
+        public ICollection<SplitTransaction> SplitTransactions { get; set; }
+
+        public Transaction(){}
+
+        public Transaction(string id, string? beneficiaryName, DateTime date, DirectionsEnum direction, double amount, string? description, string currencyCode, MCCEnum? mcc, TransactionKindEnum kind, string? catCode, ICollection<SplitTransaction>? splitTransactions)
+        {
+            Id = id;
+            BeneficiaryName = beneficiaryName;
+            Date = date;
+            Direction = direction;
+            Amount = amount;
+            Description = description;
+            CurrencyCode = currencyCode;
+            Mcc = mcc;
+            Kind = kind;
+            CatCode = catCode;
+            SplitTransactions = splitTransactions ?? new List<SplitTransaction>();
+        }
     }
 }

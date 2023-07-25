@@ -19,9 +19,9 @@ namespace PFM_API.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedSortedList<Category>> GetCategories(int page, int pageSize, Models.SortOrder sortOrder, string? sortBy)
+        public async Task<PagedSortedList<Category>> GetCategories(int page, int pageSize, Models.SortOrder sortOrder, string? sortBy, string? parentCode)
         {
-            var categories = await _categoryRepository.GetCategories(page, pageSize, sortOrder, sortBy);
+            var categories = await _categoryRepository.GetCategories(page, pageSize, sortOrder, sortBy, parentCode);
             return _mapper.Map<PagedSortedList<Category>>(categories);
         }
 

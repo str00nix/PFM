@@ -66,6 +66,24 @@ namespace PFM_API.Database.Entities
         public string? CatCode { get; set; }
 
         [ForeignKey("catcode")]
-        public virtual CategoryEntity category { get; set; }
+        //public virtual CategoryEntity category { get; set; }
+        public CategoryEntity? category { get; set; }
+        public ICollection<SplitTransactionEntity> SplitTransactions { get; set; }
+        public TransactionEntity() { }
+
+        public TransactionEntity(string id, string? beneficiaryName, DateTime date, DirectionsEnum direction, double amount, string? description, string currencyCode, MCCEnum? mcc, TransactionKindEnum kind, string? catCode, ICollection<SplitTransactionEntity>? splitTransactions)
+        {
+            Id = id;
+            BeneficiaryName = beneficiaryName;
+            Date = date;
+            Direction = direction;
+            Amount = amount;
+            Description = description;
+            CurrencyCode = currencyCode;
+            Mcc = mcc;
+            Kind = kind;
+            CatCode = catCode;
+            SplitTransactions = splitTransactions ?? new List<SplitTransactionEntity>();
+        }
     }
 }

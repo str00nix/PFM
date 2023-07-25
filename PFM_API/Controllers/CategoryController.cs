@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PFM_API.Models;
 using PFM_API.Services;
@@ -6,6 +7,7 @@ using PFM_API.Services;
 namespace PFM_API.Controllers
 {
     [ApiController]
+    [EnableCors("MyCORSPolicy")]
     [Route("v1/categories")]
     public class CategoryController : Controller
     {
@@ -24,11 +26,12 @@ namespace PFM_API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCategoriesAsync(
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] SortOrder sortOrder = SortOrder.Asc,
-            [FromQuery] string? sortBy = null)
+            [FromQuery(Name = "page-size")] int pageSize = 10,
+            [FromQuery(Name = "sort-order")] SortOrder sortOrder = SortOrder.Asc,
+            [FromQuery(Name = "sort-by")] string? sortBy = null,
+            [FromQuery(Name = "parent-code")] string? parentCode = null)
         {
-            var categories = await _categoryService.GetCategories(page, pageSize, sortOrder, sortBy);
+            var categories = await _categoryService.GetCategories(page, pageSize, sortOrder, sortBy, parentCode);
             return Ok(categories);
         }
 

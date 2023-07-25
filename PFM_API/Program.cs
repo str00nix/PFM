@@ -6,7 +6,15 @@ using PFM_API.Services;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
+var myLocalHostPolicy = "MyCORSPolicy";
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options => {
+    options.AddPolicy(name: myLocalHostPolicy, policy => {
+        policy.WithOrigins("http://localhost:4200").AllowAnyHeader();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -47,7 +55,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.UseCors(myLocalHostPolicy);
 app.Run();
 
 

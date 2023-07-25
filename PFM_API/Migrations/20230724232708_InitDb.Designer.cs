@@ -12,7 +12,7 @@ using PFM_API.Database;
 namespace PFM_API.Migrations
 {
     [DbContext(typeof(PFMDbContext))]
-    [Migration("20230720131504_InitDb")]
+    [Migration("20230724232708_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +42,34 @@ namespace PFM_API.Migrations
                     b.HasKey("Code");
 
                     b.ToTable("category", (string)null);
+                });
+
+            modelBuilder.Entity("PFM_API.Database.Entities.SplitTransactionEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Catcode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionEntityId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TransactionEntityId");
+
+                    b.ToTable("transactionSplits", (string)null);
                 });
 
             modelBuilder.Entity("PFM_API.Database.Entities.TransactionEntity", b =>
@@ -91,6 +119,13 @@ namespace PFM_API.Migrations
                     b.ToTable("transaction", (string)null);
                 });
 
+            modelBuilder.Entity("PFM_API.Database.Entities.SplitTransactionEntity", b =>
+                {
+                    b.HasOne("PFM_API.Database.Entities.TransactionEntity", null)
+                        .WithMany("SplitTransactions")
+                        .HasForeignKey("TransactionEntityId");
+                });
+
             modelBuilder.Entity("PFM_API.Database.Entities.TransactionEntity", b =>
                 {
                     b.HasOne("PFM_API.Database.Entities.CategoryEntity", "category")
@@ -98,6 +133,11 @@ namespace PFM_API.Migrations
                         .HasForeignKey("catcode");
 
                     b.Navigation("category");
+                });
+
+            modelBuilder.Entity("PFM_API.Database.Entities.TransactionEntity", b =>
+                {
+                    b.Navigation("SplitTransactions");
                 });
 #pragma warning restore 612, 618
         }
