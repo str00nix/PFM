@@ -29,21 +29,9 @@ namespace PFM_API.Database.Entities
         public DirectionsEnum Direction { get; set; }
 
         //required
-        //case of "2,376.50", normal case is 27.10
         [Name("amount")]
         [Required]
         public double Amount { get; set; }
-        //public double Amount {
-        //    get { return Amount; }
-        //    set {
-        //        if (!(value is string)) {
-        //            Amount = value;
-        //        }
-        //        else {
-        //            Amount = double.Parse(value, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
-        //        }
-        //    }
-        //}
 
         [Name("description")]
         public string? Description { get; set; }

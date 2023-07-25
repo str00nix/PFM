@@ -6,7 +6,6 @@ namespace PFM_API.Mappings
     public class TransactionsMap : ClassMap<TransactionEntity>
     {
         public TransactionsMap() {
-
             Map(m => m.Id).Name("id");
             Map(m => m.BeneficiaryName).Name("beneficiary-name");
             Map(m => m.Date).Name("date");
@@ -17,7 +16,6 @@ namespace PFM_API.Mappings
             Map(m => m.Mcc).Name("mcc");
             Map(m => m.Kind).Name("kind").ToString();
             //Map(m => m.category).Name("catcode");
-
         }
     }
 }

@@ -18,17 +18,9 @@ namespace PFM_API.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-            //modelBuilder.ApplyConfiguration(
-            //    new CategoryEntityTypeConfiguration(),
-            //    new TransactionEntityTypeConfiguration()
-            //    );
+
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-            //modelBuilder.ApplyConfiguration(
-            //    new CategoryEntityTypeConfiguration()
-            //    );
-            //modelBuilder.ApplyConfiguration(
-            //    new TransactionEntityTypeConfiguration()
-            //    );
+
             ////modelBuilder.Entity<TransactionEntity>().HasKey(t => t.Id);
             base.OnModelCreating(modelBuilder);
         }

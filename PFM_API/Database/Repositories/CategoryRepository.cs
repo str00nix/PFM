@@ -20,7 +20,6 @@ namespace PFM_API.Database.Repositories
             var query = _dbContext.Categories.AsQueryable();
             var totalCount = query.Count();
             var totalPages = (int)Math.Ceiling((totalCount * 1.0) / pageSize);
-            //totalPages = totalPages > 0 ? totalPages : 1;
 
             if (!String.IsNullOrEmpty(sortBy))
             {
@@ -69,16 +68,10 @@ namespace PFM_API.Database.Repositories
             await formFile.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
 
-            //using var reader = new StreamReader((System.IO.Stream)formFile);
             using var reader = new StreamReader(memoryStream);
 
 
-            //using var csv = new CsvReader(reader, System.Globalization.CultureInfo.CreateSpecificCulture("enUS"));
             using var csv = new CsvReader(reader, System.Globalization.CultureInfo.CurrentCulture);
-
-            //var records = csv.GetRecords<Category>();
-
-            //...
 
             csv.Context.RegisterClassMap<CategoriesMap>();
 
@@ -92,7 +85,6 @@ namespace PFM_API.Database.Repositories
             {
 
                 if (record.ParentCode == "")
-                //if (record.ParentCode == null)
                 {
                     CategoryEntity category;
                     category = _dbContext.Categories.Where(s => s.Code == record.Code).FirstOrDefault();

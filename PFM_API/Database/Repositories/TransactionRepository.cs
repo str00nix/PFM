@@ -114,24 +114,19 @@ namespace PFM_API.Database.Repositories
 
 
             var records = csv.GetRecords<TransactionEntity>().ToList();
-            //var records = csv.GetRecords<Transaction>().ToList();
 
 
             Console.WriteLine($"{records.Count} transaction records in csv file");
 
             List<TransactionEntity> items = new List<TransactionEntity>();
-            //List<Transaction> items = new List<Transaction>();
 
 
-            //foreach (TransactionEntity record in records) {
             foreach (var record in records) {
 
-                //Transaction transaction = _dbContext.Transactions.Where(s => s.Id == record.Id).FirstOrDefault();
                 TransactionEntity transaction = _dbContext.Transactions.Where(s => s.Id == record.Id).FirstOrDefault();
 
                 if (transaction == null)
                 {
-                    //transaction = new Transaction();
                     transaction = new TransactionEntity();
                 }
 
@@ -139,20 +134,7 @@ namespace PFM_API.Database.Repositories
                 transaction.BeneficiaryName = record.BeneficiaryName;
                 transaction.Date = record.Date;
                 transaction.Direction = record.Direction;
-
-                //case of "2,376.50", normal case is 27.10
-                //if (record.Amount is string)
-                //{
-                //    transaction.Amount = record.Amount;
-                //}
-                //else
-                //{
-                //    transaction.Amount = double.Parse(record.Amount, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
-                //}
-
                 transaction.Amount = record.Amount;
-
-
                 transaction.Description = record.Description;
                 transaction.CurrencyCode = record.CurrencyCode;
                 transaction.Mcc = record.Mcc;
@@ -162,10 +144,7 @@ namespace PFM_API.Database.Repositories
 
             }
 
-
-            //Adding in database
             foreach (TransactionEntity item in items)
-            //foreach (Transaction item in items)
             {
                 Console.WriteLine(item.BeneficiaryName);
                 if (!_dbContext.Transactions.Any(c => c.Id.Equals(item.Id)))
@@ -198,8 +177,6 @@ namespace PFM_API.Database.Repositories
         }
         public async Task<bool> SplitTheTransaction(TransactionEntity transaction, Splits[] splits)
         {
-
-            //Check if there are already existing Splits
             var listOfAlreadyExistingSplits = await _dbContext.TransactionSplits.AsQueryable().Where(x => x.TransactionId.Equals(transaction.Id)).ToListAsync();
 
             for (int i = 0; i < listOfAlreadyExistingSplits.Count; i++)
