@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
 namespace PFM_API.Models
@@ -21,11 +22,7 @@ namespace PFM_API.Models
         public string Name { get; set; }
 
         [Name("parent-code")]
+        [JsonPropertyName("parent-code")]
         public string? ParentCode { get; set; }
-
-        //public virtual Category? ParentCategory { get; set; }
-        //[Name("parent-code")]
-        //[ForeignKey("code")]
-        //public virtual Category? ParentCode { get; set; }
     }
 }

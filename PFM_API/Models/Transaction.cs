@@ -47,8 +47,6 @@ namespace PFM_API.Models
         public string CurrencyCode {get; set;}
 
         [Name("mcc")]
-        ///[ForeignKey("Mcc")]
-        //public MCCEnum? Mcc {get; set;}
         public string? Mcc {get; set;}
 
         //required

@@ -115,9 +115,6 @@ namespace PFM_API.Controllers
 
                                 string currencyCode = parts.Capacity == 9 ? parts[6] : parts[7];
 
-                                //MCCEnum mccEnum;
-                                //Enum.TryParse<MCCEnum>(parts.Capacity == 9 ? parts[7] : parts[8], out mccEnum);
-
                                 TransactionKindEnum kind;
                                 Enum.TryParse<TransactionKindEnum>(parts.Capacity == 9 ? parts[8] : parts[9], out kind);
 
@@ -130,7 +127,6 @@ namespace PFM_API.Controllers
                                     Direction = directions,
                                     Description = description,
                                     CurrencyCode = currencyCode,
-                                    //Mcc = mccEnum,
                                     Mcc = parts.Capacity == 9 ? parts[7] : parts[8],
                                     Kind = kind
                                 });

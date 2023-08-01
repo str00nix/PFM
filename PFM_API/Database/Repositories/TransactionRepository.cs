@@ -37,15 +37,6 @@ namespace PFM_API.Database.Repositories
             {
                 switch (sortBy)
                 {
-                    //"beneficiary-name"
-                    //"date"
-                    //"direction"
-                    //"amount"
-                    //"description"
-                    //"currency"
-                    //"mcc"
-                    //"kind"
-                    //[ForeignKey("CatCode")]
                     case "beneficiary-name":
                         query = sortOrder == Models.SortOrder.Asc ? query.OrderBy(x => x.BeneficiaryName) : query.OrderByDescending(x => x.BeneficiaryName);
                         break;
