@@ -1,4 +1,5 @@
-﻿using PFM_API.Models;
+﻿using PFM_API.Database.Entities;
+using PFM_API.Models;
 
 namespace PFM_API.Services
 {
@@ -8,5 +9,6 @@ namespace PFM_API.Services
         //Task<PagedSortedList<Category>> GetCategoriesByParentCode(string? parentCode);
         public Task ImportCategories(IFormFile formFile);
         //Task<List<SpendingByCategory>> GetAnaliytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionsEnum? directionKind);
+        Task<CategoryEntity> GetCategoryByCode(string? code);
     }
 }

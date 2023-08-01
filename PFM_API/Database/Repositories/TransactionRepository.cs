@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using PFM_API.Commands;
 using PFM_API.Database.Entities;
 using PFM_API.Mappings;
@@ -155,6 +156,7 @@ namespace PFM_API.Database.Repositories
             }
             _dbContext.SaveChanges();
         }
+
         public async Task<bool> CreateTransaction(TransactionEntity transactionEntity)
         {
             _dbContext.Transactions.Add(transactionEntity);
@@ -162,100 +164,123 @@ namespace PFM_API.Database.Repositories
             return true;
         }
 
-        public async Task<TransactionEntity> GetTransactionById(string Id)
+        public async Task<TransactionEntity> GetTransactionById(string id)
         {
-
-            return await _dbContext.Transactions.Include(x => x.SplitTransactions).FirstOrDefaultAsync(t => t.Id.Equals(Id));
+            return await _dbContext.Transactions.Include(x => x.SplitTransactions).FirstOrDefaultAsync(t => t.Id.Equals(id));
         }
+
         public async Task<bool> CategorizeTransaction(TransactionEntity transaction, CategoryEntity category)
         {
-            transaction.category = category;
             transaction.CatCode = category.Code;
+            transaction.category = category;
             _dbContext.Update(transaction);
             await _dbContext.SaveChangesAsync();
             return true;
         }
-        public async Task<bool> SplitTheTransaction(TransactionEntity transaction, Splits[] splits)
-        {
-            var listOfAlreadyExistingSplits = await _dbContext.TransactionSplits.AsQueryable().Where(x => x.TransactionId.Equals(transaction.Id)).ToListAsync();
 
-            for (int i = 0; i < listOfAlreadyExistingSplits.Count; i++)
+        public async Task<bool> SplitTransaction(TransactionEntity transaction, List<Splits> splits)
+        {
+            var existingSplitsList = await _dbContext.TransactionSplits.AsQueryable().Where(x => x.TransactionId.Equals(transaction.Id)).ToListAsync();
+
+            foreach (var existingTransaction in existingSplitsList)
             {
-                _dbContext.TransactionSplits.Remove(listOfAlreadyExistingSplits[i]);
+                _dbContext.TransactionSplits.Remove(existingTransaction);
 
             }
+
             await _dbContext.SaveChangesAsync();
 
             foreach (Splits split in splits)
             {
-                SplitTransactionEntity splitTransactionEntity = new SplitTransactionEntity() { Amount = split.amount, Catcode = split.catcode, TransactionId = transaction.Id };
+                SplitTransactionEntity splitTransactionEntity = new SplitTransactionEntity() 
+                {   Amount = split.amount,
+                    Catcode = split.catcode,
+                    TransactionId = transaction.Id
+                };
+
                 transaction.SplitTransactions.Add(splitTransactionEntity);
             }
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
         public async Task<CategoryEntity> GetCategoryByCodeId(string codeId)
         {
             return await _dbContext.Categories.FirstOrDefaultAsync(t => t.Code.Equals(codeId));
         }
-                public async Task<List<SpendingByCategory>> GetAnalytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionsEnum? directionKind) {
 
-            if (catcode != null) {
-                
-                var queryC = _dbContext.Categories.AsQueryable();
-                var queryT = _dbContext.Transactions.AsQueryable();
+        public async Task<List<SpendingByCategory>> GetAnalytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionsEnum? directionKind) {
 
-                var finalList = await queryT.Join(queryC,
-                            queryT => queryT.CatCode,
-                            queryC => queryC.Code,
-                            (queryT, queryC) => new {
-                                Id = queryT.Id,                             
-                                Amount = queryT.Amount,
-                                CatCode = queryT.CatCode,
-                                ParentCode = queryC.ParentCode,
-                                Direction = queryT.Direction,
-                                Date = queryT.Date
-                            }).Where(x => x.ParentCode.Equals(catcode) || x.CatCode.Equals(catcode))
-                            .Where(x => directionKind == null || (x.Direction == directionKind))
-                            .Where(x => (startDate == null || (x.Date >= startDate)) && (endDate == null || (x.Date <= endDate)))
-                            .GroupBy(x => x.CatCode)
-                            .Select(x => new SpendingByCategory {
-                                catcode = x.First().CatCode,
-                                count = x.Count(),
-                                amount = x.Sum(c => c.Amount)
-                            }).ToListAsync();
+            var query = _dbContext.Transactions.Where(t => t.CatCode != null).AsQueryable();
 
-                return finalList;
-            }
+            if (!string.IsNullOrEmpty(catcode)) query = query.Where(t => t.CatCode == catcode);
 
-            else
-            {
-                List<SpendingByCategory> listOfSpendings = new List<SpendingByCategory>();
+            if (startDate != null) query = query.Where(t => t.Date >= startDate);
 
-                var query = _dbContext.Categories.AsQueryable();
-                query = query.Where(x => x.ParentCode.Equals(""));
-                List<CategoryEntity> listOfRoots = await query.ToListAsync();
+            if (endDate != null) query = query.Where(t => t.Date <= endDate);
 
-                foreach (CategoryEntity categoryEntity in listOfRoots) {
-                    string rootCode = categoryEntity.Code;
-                    List<CategoryEntity> listOfChildrenAndRoot = await _dbContext.Categories.AsQueryable().Where(x => x.ParentCode.Equals(rootCode) || x.Code.Equals(rootCode)).ToListAsync();
+            if (directionKind != null) query = query.Where(t => t.Direction == directionKind);
 
-                    List<TransactionEntity> listOfTransactions = await _dbContext.Transactions.AsQueryable()
-                        .Where(x => listOfChildrenAndRoot.Contains(x.category))
-                        .Where(x => directionKind == null || x.Direction == directionKind)
-                        .Where(x => (startDate == null || x.Date >= startDate) && (endDate == null || x.Date <= endDate)).ToListAsync();
+            var spendingAnalytics = await query
+                .GroupBy(t => new { t.CatCode, t.category.Name })
+                .Select(g => new SpendingByCategory
+                {
+                    catcode = g.Key.CatCode,
+                    amount = Math.Round(g.Sum(t => t.Amount), 2),
+                    count = g.Count()
+                })
+                .ToListAsync();
 
-
-                    SpendingByCategory s = new SpendingByCategory(); s.amount = 0.0; s.count = 0; s.catcode = rootCode;
-                    foreach(TransactionEntity transactionEntity in listOfTransactions) {
-                        s.amount += transactionEntity.Amount;
-                        s.count++;
-                    }
-
-                    if(s.count > 0) listOfSpendings.Add(s);
-                }
-                return listOfSpendings;
-            }
+            return spendingAnalytics;
         }
+        public async Task<bool> AutoCategorizeTransactions()
+        {
+            var transactions = _dbContext.Transactions.ToList();
+
+            List<CategorizationRuleFromJson> rulesList = new List<CategorizationRuleFromJson>();
+
+            using (StreamReader streamReader = new("rulesJsonFile.json"))
+            {
+                string jsonObj = await streamReader.ReadToEndAsync();
+                rulesList = JsonConvert.DeserializeObject<List<CategorizationRuleFromJson>>(jsonObj).ToList();
+            }
+
+            int counter = 0;
+            bool wasCategorized = false;
+
+            foreach (TransactionEntity transaction in transactions)
+            {
+                if (!string.IsNullOrEmpty(transaction.CatCode))
+                {
+                    continue;
+                }
+
+                wasCategorized = false;
+
+                foreach (CategorizationRuleFromJson rule in rulesList)
+                {
+                    if (rule.MCC.Any(x => x == (int)transaction.Mcc) || rule.Keywords.Any(x => transaction.Description.ToLower().Contains(x.ToLower()) || transaction.BeneficiaryName.ToLower().Contains(x.ToLower())))
+                    {
+                        transaction.CatCode = rule.CatCode;
+                        counter++;
+                        //Console.WriteLine($"Auto-Categorized {transaction.Id}");
+                        wasCategorized = true;
+                        break;
+                    }
+                }
+
+                if (!wasCategorized)
+                {
+                    Console.WriteLine($"{transaction.Id} ({transaction.BeneficiaryName}) - ({transaction.Description}) (MCC: {transaction.Mcc}) was not Auto-Categorized");
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            Console.WriteLine($"Auto-Categorized {counter} transactions.");
+
+            return true;
+        }
+
     }
 }

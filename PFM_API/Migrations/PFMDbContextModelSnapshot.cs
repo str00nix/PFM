@@ -107,12 +107,12 @@ namespace PFM_API.Migrations
                     b.Property<int?>("Mcc")
                         .HasColumnType("integer");
 
-                    b.Property<string>("catcode")
+                    b.Property<string>("categoryCode")
                         .HasColumnType("character varying(16)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("catcode");
+                    b.HasIndex("categoryCode");
 
                     b.ToTable("transaction", (string)null);
                 });
@@ -128,7 +128,7 @@ namespace PFM_API.Migrations
                 {
                     b.HasOne("PFM_API.Database.Entities.CategoryEntity", "category")
                         .WithMany()
-                        .HasForeignKey("catcode");
+                        .HasForeignKey("categoryCode");
 
                     b.Navigation("category");
                 });

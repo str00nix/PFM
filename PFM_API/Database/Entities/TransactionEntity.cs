@@ -3,6 +3,7 @@ using PFM_API.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace PFM_API.Database.Entities
 {
@@ -16,6 +17,7 @@ namespace PFM_API.Database.Entities
         public string Id { get; set; }
 
         [Name("beneficiary-name")]
+        [JsonPropertyName("beneficiary-name")]
         public string? BeneficiaryName { get; set; }
 
         //required
@@ -53,7 +55,7 @@ namespace PFM_API.Database.Entities
 
         public string? CatCode { get; set; }
 
-        [ForeignKey("catcode")]
+        //[ForeignKey("catcode")]
         //public virtual CategoryEntity category { get; set; }
         public CategoryEntity? category { get; set; }
         public ICollection<SplitTransactionEntity> SplitTransactions { get; set; }

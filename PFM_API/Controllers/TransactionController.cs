@@ -46,6 +46,10 @@ namespace PFM_API.Controllers
                 }
             }
 
+            if (pageSize > 25) {
+                pageSize = 25;
+            }
+
             var transactions = await _transactionService.GetTransactions(listOfKinds, startDate, endDate, page, pageSize, sortOrder, sortBy);
             return Ok(transactions);
         }
@@ -111,8 +115,8 @@ namespace PFM_API.Controllers
 
                                 string currencyCode = parts.Capacity == 9 ? parts[6] : parts[7];
 
-                                MCCEnum mccEnum;
-                                Enum.TryParse<MCCEnum>(parts.Capacity == 9 ? parts[7] : parts[8], out mccEnum);
+                                //MCCEnum mccEnum;
+                                //Enum.TryParse<MCCEnum>(parts.Capacity == 9 ? parts[7] : parts[8], out mccEnum);
 
                                 TransactionKindEnum kind;
                                 Enum.TryParse<TransactionKindEnum>(parts.Capacity == 9 ? parts[8] : parts[9], out kind);
@@ -126,7 +130,8 @@ namespace PFM_API.Controllers
                                     Direction = directions,
                                     Description = description,
                                     CurrencyCode = currencyCode,
-                                    Mcc = mccEnum,
+                                    //Mcc = mccEnum,
+                                    Mcc = parts.Capacity == 9 ? parts[7] : parts[8],
                                     Kind = kind
                                 });
                                     if (inserted == false) {
@@ -156,11 +161,31 @@ namespace PFM_API.Controllers
         }
 
         [HttpPost("{id}/categorize")]
-        public async Task<IActionResult> GiveCategoryToTransaction([FromRoute] string id, [FromBody] CategorizeTransactionCommand command)
+        public async Task<IActionResult> CategorizeTransaction([FromRoute] string id, [FromBody] CategorizeTransactionCommand command)
         {
             var categorised = await _transactionService.CategorizeTransaction(id, command.catcode);
-            if (categorised == false) return BadRequest("Category or Transaction You picked doesnt exist");
-            else return Ok("Categorisation completed");
+            if (categorised){
+                return Ok("Categorisation completed");
+            }
+            else{
+                return StatusCode(500, "Failed to categorize transaction");
+            }
+        }
+
+        //v1/transactions/auto-categorize
+        [HttpPost("auto-categorize")]
+        //[NonAction]
+        public async Task<IActionResult> AutoCategorizeTransactions()
+        {
+            bool success = await _transactionService.AutoCategorizeTransactions();
+            if (success)
+            {
+                return Ok("Auto-categorization completed");
+            }
+            else
+            {
+                return StatusCode(500, "Failed to auto-categorize all transactions");
+            }
         }
 
         [HttpGet("spending-analytics")]
@@ -171,11 +196,11 @@ namespace PFM_API.Controllers
         }
 
         [HttpPost("{id}/split")]
-        public async Task<IActionResult> SplitTransaction([FromBody] SplitTransactionCommand splits, [FromRoute] string id)
+        public async Task<IActionResult> SplitTransaction([FromRoute] string id, [FromBody] SplitTransactionCommand splits)
         {
-            var splited = await _transactionService.SplitTransaction(splits.Splits, id);
-            if (splited == false) return BadRequest("Could not be splited");
-            return Ok("Split is done");
+            var splitResult = await _transactionService.SplitTransaction(id, splits.Splits.ToList());
+            if (splitResult == false) return StatusCode(500, "Could not be split");
+            return Ok("Split completed succesfully");
         }
     }
 }

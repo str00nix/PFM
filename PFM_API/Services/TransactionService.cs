@@ -10,11 +10,13 @@ namespace PFM_API.Services
     {
 
         ITransactionRepository _transactionRepository;
+        ICategoryRepository _categoryRepository;
         IMapper _mapper;
 
-        public TransactionService(ITransactionRepository transactionRepository, IMapper mapper)
+        public TransactionService(ITransactionRepository transactionRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
             _transactionRepository = transactionRepository;
+            _categoryRepository = categoryRepository;
             _mapper = mapper;
         }
 
@@ -30,26 +32,25 @@ namespace PFM_API.Services
             _transactionRepository.ImportTransactions(formFile);
         }
 
-        private async Task<bool> CheckIfTransactionExist(string Id)
+        private async Task<bool> CheckIfTransactionExist(string id)
         {
-            var transaction = await _transactionRepository.GetTransactionById(Id);
-            if (transaction == null) return false;
-            else return true;
+            var transaction = await _transactionRepository.GetTransactionById(id);
+            return transaction == null ? false : true;
 
         }
 
-        public async Task<bool> InsertTransaction(Transaction t)
+        public async Task<bool> InsertTransaction(Transaction transaction)
         {
-            var checkIfTransactionExist = await CheckIfTransactionExist(t.Id);
+            var checkIfTransactionExist = await CheckIfTransactionExist(transaction.Id);
             if (!checkIfTransactionExist)
             {
-                return await _transactionRepository.CreateTransaction(_mapper.Map<TransactionEntity>(t));
+                return await _transactionRepository.CreateTransaction(_mapper.Map<TransactionEntity>(transaction));
             }
             return false;
 
         }
 
-        public async Task<bool> SplitTransaction(Splits[] splits, string id)
+        public async Task<bool> SplitTransaction(string id, List<Splits> splits)
         {
 
             var transaction = await _transactionRepository.GetTransactionById(id);
@@ -64,14 +65,17 @@ namespace PFM_API.Services
             }
             if (transaction.Amount != amount) return false;
 
-            return await _transactionRepository.SplitTheTransaction(transaction, splits);
+            return await _transactionRepository.SplitTransaction(transaction, splits);
         }
 
-        public async Task<bool> CategorizeTransaction(string id, string idCategory)
+        public async Task<bool> CategorizeTransaction(string transactionId, string categoryId)
         {
-            var transaction = await _transactionRepository.GetTransactionById(id);
-            var category = await _transactionRepository.GetCategoryByCodeId(idCategory);
-            if (transaction == null || category == null) return false;
+            var transaction = await _transactionRepository.GetTransactionById(transactionId);
+            var category = await _categoryRepository.GetCategoryByCodeId(categoryId);
+
+            if (transaction == null || category == null) {
+                return false;
+            }
             else
             {
                 return await _transactionRepository.CategorizeTransaction(transaction, category);
@@ -81,6 +85,10 @@ namespace PFM_API.Services
         public async Task<List<SpendingByCategory>> GetAnaliytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionsEnum? directionKind)
         {
             return await _transactionRepository.GetAnalytics(catcode, startDate, endDate, directionKind);
+        }
+        public async Task<bool> AutoCategorizeTransactions()
+        {
+            return await _transactionRepository.AutoCategorizeTransactions();
         }
     }
 }

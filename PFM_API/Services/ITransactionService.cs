@@ -7,9 +7,10 @@ namespace PFM_API.Services
     {
         Task<PagedSortedList<Transaction>> GetTransactions(List<TransactionKindEnum>? listOfKinds, DateTime? startDate, DateTime? endDate, int page, int pageSize, SortOrder sortOrder, string? sortBy);
         public Task ImportTransactions(IFormFile formFile);
-        Task<bool> InsertTransaction(Transaction t);
-        Task<bool> CategorizeTransaction(string id, string idCategory);
-        Task<bool> SplitTransaction(Splits[] splits, string id);
+        Task<bool> InsertTransaction(Transaction transaction);
+        Task<bool> CategorizeTransaction(string transactionId, string categoryId);
+        Task<bool> SplitTransaction(string id, List<Splits> splits);
         Task<List<SpendingByCategory>> GetAnaliytics(string? catcode, DateTime? startDate, DateTime? endDate, DirectionsEnum? directionKind);
+        Task<bool> AutoCategorizeTransactions();
     }
 }

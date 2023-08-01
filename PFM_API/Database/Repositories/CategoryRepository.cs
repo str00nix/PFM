@@ -141,7 +141,7 @@ namespace PFM_API.Database.Repositories
             _dbContext.SaveChanges();
 
         }
-        public async Task<CategoryEntity> GetCategoryByCodeId(string codeId)
+        public async Task<CategoryEntity> GetCategoryByCodeId(string? codeId)
         {
             return await _dbContext.Categories.FirstOrDefaultAsync(t => t.Code.Equals(codeId));
         }

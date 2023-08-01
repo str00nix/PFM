@@ -12,7 +12,7 @@ using PFM_API.Database;
 namespace PFM_API.Migrations
 {
     [DbContext(typeof(PFMDbContext))]
-    [Migration("20230724232708_InitDb")]
+    [Migration("20230730033920_InitDb")]
     partial class InitDb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -109,12 +109,12 @@ namespace PFM_API.Migrations
                     b.Property<int?>("Mcc")
                         .HasColumnType("integer");
 
-                    b.Property<string>("catcode")
+                    b.Property<string>("categoryCode")
                         .HasColumnType("character varying(16)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("catcode");
+                    b.HasIndex("categoryCode");
 
                     b.ToTable("transaction", (string)null);
                 });
@@ -130,7 +130,7 @@ namespace PFM_API.Migrations
                 {
                     b.HasOne("PFM_API.Database.Entities.CategoryEntity", "category")
                         .WithMany()
-                        .HasForeignKey("catcode");
+                        .HasForeignKey("categoryCode");
 
                     b.Navigation("category");
                 });

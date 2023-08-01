@@ -37,14 +37,14 @@ namespace PFM_API.Migrations
                     Mcc = table.Column<int>(type: "integer", nullable: true),
                     Kind = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
                     CatCode = table.Column<string>(type: "text", nullable: true),
-                    catcode = table.Column<string>(type: "character varying(16)", nullable: true)
+                    categoryCode = table.Column<string>(type: "character varying(16)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_transaction", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_transaction_category_catcode",
-                        column: x => x.catcode,
+                        name: "FK_transaction_category_categoryCode",
+                        column: x => x.categoryCode,
                         principalTable: "category",
                         principalColumn: "Code");
                 });
@@ -71,9 +71,9 @@ namespace PFM_API.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_transaction_catcode",
+                name: "IX_transaction_categoryCode",
                 table: "transaction",
-                column: "catcode");
+                column: "categoryCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_transactionSplits_TransactionEntityId",

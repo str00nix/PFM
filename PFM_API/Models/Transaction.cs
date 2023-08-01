@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using System.Xml.Linq;
 
 namespace PFM_API.Models
@@ -16,6 +17,7 @@ namespace PFM_API.Models
         public string Id {get; set;}
 
         [Name("beneficiary-name")]
+        [JsonPropertyName("beneficiary-name")]
         public string? BeneficiaryName {get; set;}
 
         //required
@@ -41,11 +43,13 @@ namespace PFM_API.Models
         [MaxLength(3)]
         [MinLength(3)]
         [Required]
+        [JsonPropertyName("currency")]
         public string CurrencyCode {get; set;}
 
         [Name("mcc")]
         ///[ForeignKey("Mcc")]
-        public MCCEnum? Mcc {get; set;}
+        //public MCCEnum? Mcc {get; set;}
+        public string? Mcc {get; set;}
 
         //required
         [Name("kind")]
@@ -54,12 +58,14 @@ namespace PFM_API.Models
 
         [Name("catcode")]
         [ReadOnly(true)]
+        [JsonPropertyName("catcode")]
         public string? CatCode { get; set; }
+        [JsonPropertyName("split-transactions")]
         public ICollection<SplitTransaction> SplitTransactions { get; set; }
 
         public Transaction(){}
 
-        public Transaction(string id, string? beneficiaryName, DateTime date, DirectionsEnum direction, double amount, string? description, string currencyCode, MCCEnum? mcc, TransactionKindEnum kind, string? catCode, ICollection<SplitTransaction>? splitTransactions)
+        public Transaction(string id, string? beneficiaryName, DateTime date, DirectionsEnum direction, double amount, string? description, string currencyCode, string? mcc, TransactionKindEnum kind, string? catCode, ICollection<SplitTransaction>? splitTransactions)
         {
             Id = id;
             BeneficiaryName = beneficiaryName;
