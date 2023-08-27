@@ -87,7 +87,7 @@ namespace PFM_API.Database.Repositories
             };
         }
 
-        public async Task ImportTransactions(IFormFile formFile)
+        public async Task<bool> ImportTransactions(IFormFile formFile)
         {
             Console.WriteLine("transaction repository import called");
 
@@ -146,6 +146,7 @@ namespace PFM_API.Database.Repositories
 
             }
             _dbContext.SaveChanges();
+            return true;
         }
 
         public async Task<bool> CreateTransaction(TransactionEntity transactionEntity)

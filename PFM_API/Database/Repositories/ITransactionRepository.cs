@@ -7,7 +7,7 @@ namespace PFM_API.Database.Repositories
     public interface ITransactionRepository
     {
         Task<PagedSortedList<TransactionEntity>> GetTransactions(List<TransactionKindEnum>? listOfKinds, DateTime? startDate, DateTime? endDate, int page = 1, int pageSize = 10, SortOrder sortOrder = SortOrder.Asc, string? sortBy = null);
-        public Task ImportTransactions(IFormFile formFile);
+        public Task<bool> ImportTransactions(IFormFile formFile);
         Task<TransactionEntity> GetTransactionById(string id);
         Task<bool> CreateTransaction(TransactionEntity transactionEntity);
         Task<bool> CategorizeTransaction(TransactionEntity transaction, CategoryEntity category);

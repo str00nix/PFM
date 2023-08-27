@@ -54,16 +54,6 @@ namespace PFM_API.Controllers
             return Ok(transactions);
         }
 
-        static bool RowHasData(List<string> cells)
-        {
-            return cells.Any(x => x.Length > 0);
-        }
-
-        static double parseStringToDouble(string str)
-        {
-            return double.Parse(str.Trim('"').Replace(",", ""));
-        }
-
         // v1/transactions/import
         [HttpPost("import")]
         public async Task<IActionResult> ImportTransactionsFromCSV([FromForm] IFormFile formFile)
@@ -72,79 +62,11 @@ namespace PFM_API.Controllers
             try
             {
                 formFile = formFile ?? Request.Form.Files[0];
-                //var result = _transactionService.ImportTransactions(formFile);
+                var result = await _transactionService.ImportTransactions(formFile);
 
-                //if (result == null)
-                //{
-                //    return StatusCode(500, "Error when importing transactions from inserted CSV file");
-                //}
-
-                using (var reader = new StreamReader(formFile.OpenReadStream()))
+                if (result == null)
                 {
-
-                    bool firstLine = true;
-                    while (reader.EndOfStream == false)
-                    {
-                        var content = reader.ReadLine();
-                        try {
-
-                        var parts = content.Split(',').ToList();
-
-                            //Console.WriteLine(cells);
-                            //break;
-
-                            if (RowHasData(parts))
-                        {
-
-                            if (!firstLine)
-                            {
-
-                                string Id = parts[0];
-
-                                string beneficiaryName = parts[1];
-
-                                string[] dateParts = parts[2].Split('/');
-                                DateTime date = new DateTime(int.Parse(dateParts[2]), int.Parse(dateParts[0]), int.Parse(dateParts[1]));
-
-                                DirectionsEnum directions;
-                                Enum.TryParse<DirectionsEnum>(parts[3], out directions);
-
-                                double amount = parts.Capacity == 9 ? double.Parse(parts[4]) : parseStringToDouble(parts[4] + parts[5]);
-
-                                string description = parts.Capacity == 9 ? parts[5] : parts[6];
-
-                                string currencyCode = parts.Capacity == 9 ? parts[6] : parts[7];
-
-                                TransactionKindEnum kind;
-                                Enum.TryParse<TransactionKindEnum>(parts.Capacity == 9 ? parts[8] : parts[9], out kind);
-
-                                var inserted = await _transactionService.InsertTransaction(new Transaction()
-                                {
-                                    Id = Id,
-                                    BeneficiaryName = beneficiaryName,
-                                    Date = date,
-                                    Amount = amount,
-                                    Direction = directions,
-                                    Description = description,
-                                    CurrencyCode = currencyCode,
-                                    Mcc = parts.Capacity == 9 ? parts[7] : parts[8],
-                                    Kind = kind
-                                });
-                                    if (inserted == false) {
-                                        continue;
-                                    };
-                            }
-                            firstLine = false;
-                        }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(content);
-                            Console.WriteLine(ex.Message);
-                            //content
-                            break;
-                        }
-                    }
+                    return StatusCode(500, "Error when importing transactions from inserted CSV file");
                 }
 
                 return Ok();

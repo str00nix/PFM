@@ -26,10 +26,88 @@ namespace PFM_API.Services
             return _mapper.Map<PagedSortedList<Transaction>>(transaction);
         }
 
-        public async Task ImportTransactions(IFormFile formFile)
+        static bool RowHasData(List<string> cells)
+        {
+            return cells.Any(x => x.Length > 0);
+        }
+
+        static double parseStringToDouble(string str)
+        {
+            return double.Parse(str.Trim('"').Replace(",", ""));
+        }
+
+        public async Task<bool> ImportTransactions(IFormFile formFile)
         {
             Console.WriteLine("service for transaction import called");
-            _transactionRepository.ImportTransactions(formFile);
+            //var result = await _transactionRepository.ImportTransactions(formFile);
+
+            using var reader = new StreamReader(formFile.OpenReadStream());
+
+            bool firstLine = true;
+            while (reader.EndOfStream == false)
+            {
+                var content = reader.ReadLine();
+                try
+                {
+
+                    var parts = content.Split(',').ToList();
+
+                    if (RowHasData(parts))
+                    {
+
+                        if (!firstLine)
+                        {
+
+                            string Id = parts[0];
+
+                            string beneficiaryName = parts[1];
+
+                            string[] dateParts = parts[2].Split('/');
+                            DateTime date = new DateTime(int.Parse(dateParts[2]), int.Parse(dateParts[0]), int.Parse(dateParts[1]));
+
+                            DirectionsEnum directions;
+                            Enum.TryParse<DirectionsEnum>(parts[3], out directions);
+
+                            double amount = parts.Capacity == 9 ? double.Parse(parts[4]) : parseStringToDouble(string.Join(',', parts.GetRange(4, parts.Capacity - 8)));
+
+                            string description = parts.Capacity == 9 ? parts[5] : parts[parts.Capacity - 4];
+
+                            string currencyCode = parts.Capacity == 9 ? parts[6] : parts[parts.Capacity - 3];
+
+                            TransactionKindEnum kind;
+                            Enum.TryParse<TransactionKindEnum>(parts.Capacity == 9 ? parts[8] : parts[parts.Capacity - 1], out kind);
+
+                            var inserted = await InsertTransaction(new Transaction()
+                            {
+                                Id = Id,
+                                BeneficiaryName = beneficiaryName,
+                                Date = date,
+                                Amount = amount,
+                                Direction = directions,
+                                Description = description,
+                                CurrencyCode = currencyCode,
+                                Mcc = parts.Capacity == 9 ? parts[7] : parts[parts.Capacity - 2],
+                                Kind = kind
+                            });
+                            if (inserted == false)
+                            {
+                                continue;
+                            };
+                        }
+                        firstLine = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(content);
+                    Console.WriteLine(ex.Message);
+                    //content
+                    break;
+                }
+            }
+
+            return true;
+            //return result;
         }
 
         private async Task<bool> CheckIfTransactionExist(string id)
